@@ -202,3 +202,145 @@ You should see a raw JSON list of HackerNews article IDs:
 * If you get a DNS error, it may be because you haven't given the app permission to access the internet.
 
 ## Part 3: JSON decoding
+
+### Add jsoncpp to the build files
+
+In app/build.gradle, dependencies section: `implementation 'com.android.ndk.thirdparty:jsoncpp:1.9.5-beta-1'`
+
+In app/src/main/cpp/CMakeLists.txt: `find_package(jsoncpp REQUIRED CONFIG)`, and add `jsoncpp::jsoncpp` to target_link_libraries
+
+### Write the C++ code
+
+Change the method signature to return a `jobjectArray` instead of a `jstring`. We'll also
+use a separate function to get the article titles:
+
+```C++
+extern "C" JNIEXPORT jobjectArray JNICALL
+Java_com_example_hackernews_MainActivity_getHackerNews(
+        JNIEnv *env,
+        jobject /* this */,
+        jstring cacert_java) {
+    if (cacert_java == nullptr) {
+        hackernews::logging::FatalError(env, "cacert argument cannot be null");
+    }
+
+    const std::string cacert =
+            hackernews::jni::Convert<std::string>::from(env, cacert_java);
+    return hackernews::jni::Convert<jobjectArray, jstring>::from(env,
+                                                   hackernews::GetTitles(cacert));
+
+}
+```
+
+Now, `#include "json/json.h"` and use it to implement GetTitles. Decode the array of stories, and fetch the
+details for the top ~10. (It gets slow if you fetch too many. Parallelizing the requests is left as
+a TODO.) For the exact details, refer to [app/src/main/cpp/native-lib.cpp]
+
+### Update the app layout
+
+The curl-ssl app on which this is based uses a ListView, which is deprecated. We'll do something
+better.
+
+#### Change activity_main.xml to be a RecyclerView inside a LinearLayout
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/list_item" />
+</LinearLayout>
+```
+
+#### Add a new list_item.xml that's a TextView inside a ConstraintLayout
+
+This is the layout used for each list item, and will display the article title.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+### Add an adapter for the RecyclerView
+
+Add app/src/main/java/com/example/hackernews/NewsAdapter.kt. The implementation basically follows
+the example in https://developer.android.com/guide/topics/ui/layout/recyclerview
+
+```kotlin
+package com.example.hackernews
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+
+class NewsAdapter(private val dataSet: Array<String>) :
+        RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val textView: TextView
+
+        init {
+            textView = view.findViewById(R.id.textView)
+        }
+    }
+
+    override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(viewGroup.context)
+                .inflate(R.layout.list_item, viewGroup, false)
+
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
+        viewHolder.textView.text = dataSet[position]
+    }
+
+    override fun getItemCount() = dataSet.size
+}
+```
+
+### Update MainActivity
+
+Our native function now returns an array of strings: `external fun getHackerNews(cacert: String): Array<String>`
+
+Then, we need to initialize and use the adapter:
+
+```kotlin
+    private lateinit var adapter: NewsAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        adapter = NewsAdapter(getHackerNews(cacert.path))
+
+        val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
+        recyclerView.adapter = adapter
+    }
+```
+
+### Build and run the app
+
+![Screenshot at end of part 3](Screenshot_3.png)

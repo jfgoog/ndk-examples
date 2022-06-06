@@ -2,8 +2,7 @@ package com.example.hackernews
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.TextView
-import com.example.hackernews.databinding.ActivityMainBinding
+import androidx.recyclerview.widget.RecyclerView
 import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
@@ -13,23 +12,23 @@ class MainActivity : AppCompatActivity() {
         path
     }
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var adapter: NewsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        adapter = NewsAdapter(getHackerNews(cacert.path))
 
-        // Example of a call to a native method
-        binding.sampleText.text = getHackerNews(cacert.path)
+        val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
+        recyclerView.adapter = adapter
     }
 
     /**
      * A native method that is implemented by the 'hackernews' native library,
      * which is packaged with this application.
      */
-    external fun getHackerNews(cacert: String): String
+    external fun getHackerNews(cacert: String): Array<String>
 
     companion object {
         // Used to load the 'hackernews' library on application startup.

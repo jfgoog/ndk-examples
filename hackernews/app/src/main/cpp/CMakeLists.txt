@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 3.18.1)
 project("hackernews")
 
 find_package(curl REQUIRED CONFIG)
+find_package(jsoncpp REQUIRED CONFIG)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -51,6 +52,7 @@ target_link_libraries( # Specifies the target library.
         hackernews
 
         curl::curl
+        jsoncpp::jsoncpp
 
         # Links the target library to the log library
         # included in the NDK.

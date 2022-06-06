@@ -9,6 +9,8 @@ cmake_minimum_required(VERSION 3.18.1)
 
 project("hackernews")
 
+find_package(curl REQUIRED CONFIG)
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -21,7 +23,12 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
+        logging.cpp
+        http.cpp
         native-lib.cpp)
+
+set_target_properties(hackernews PROPERTIES CXX_STANDARD 17)
+target_compile_options(hackernews PRIVATE -Wall -Werror)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -42,6 +49,8 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
         hackernews
+
+        curl::curl
 
         # Links the target library to the log library
         # included in the NDK.

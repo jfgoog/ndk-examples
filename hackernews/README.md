@@ -27,6 +27,10 @@ There are 3 parts to this tutorial:
 Create a new "Native C++" project in Android Studio. Refer to the instructions
 [here](https://developer.android.com/studio/projects/add-native-code#new-project).
 
+### Run the app
+
+The app should display "Hello, world".
+
 ## Part 2: Fetching data with HTTP
 
 ### Add openssl and curl to app/build.gradle and enable prefab and shared libraries
@@ -186,3 +190,15 @@ index 6866733..d50478d 100644
          # included in the NDK.
          ${log-lib})
 ```
+
+### Build and run the app
+
+You should see a raw JSON list of HackerNews article IDs:
+
+![Screenshot at end of part 2](Screenshot_2.png)
+
+### Troubleshooting
+
+* If you get a DNS error, it may be because you haven't given the app permission to access the internet.
+
+## Part 3: JSON decoding

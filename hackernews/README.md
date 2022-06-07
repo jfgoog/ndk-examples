@@ -344,3 +344,8 @@ Then, we need to initialize and use the adapter:
 ### Build and run the app
 
 ![Screenshot at end of part 3](Screenshot_3.png)
+
+### Additional resources
+
+* https://developer.android.com/guide/topics/ui/layout/recyclerview
+* https://medium.com/@vanshbadkul/json-parsing-hacker-news-api-on-android-9b0fd8b21b88

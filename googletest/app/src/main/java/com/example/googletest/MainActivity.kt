@@ -16,19 +16,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Example of a call to a native method
-        binding.sampleText.text = stringFromJNI()
+        binding.sampleText.text = add(1, 2).toString()
     }
 
     /**
      * A native method that is implemented by the 'googletest' native library,
      * which is packaged with this application.
      */
-    external fun stringFromJNI(): String
+    external fun add(a: Int, b: Int): Int
 
     companion object {
         // Used to load the 'googletest' library on application startup.
         init {
-            System.loadLibrary("googletest")
+            System.loadLibrary("googletest-example")
         }
     }
 }

@@ -7,7 +7,12 @@ cmake_minimum_required(VERSION 3.18.1)
 
 # Declares and names the project.
 
-project("googletest")
+project("googletest-example")
+
+find_package(googletest REQUIRED CONFIG)
+find_package(junit-gtest REQUIRED CONFIG)
+
+add_library(adder OBJECT adder.cpp)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -15,12 +20,13 @@ project("googletest")
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-        googletest
+        googletest-example
 
         # Sets the library as a shared library.
         SHARED
 
         # Provides a relative path to your source file(s).
+        $<TARGET_OBJECTS:adder>
         native-lib.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -41,8 +47,16 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-        googletest
+        googletest-example
 
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})
+
+add_library(app_tests SHARED adder_test.cpp)
+target_link_libraries(app_tests
+  PRIVATE
+    $<TARGET_OBJECTS:adder>
+    googletest::gtest
+    junit-gtest::junit-gtest
+)

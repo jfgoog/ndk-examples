@@ -1,10 +1,12 @@
 #include <jni.h>
-#include <string>
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_googletest_MainActivity_stringFromJNI(
+#include "adder.h"
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_example_googletest_MainActivity_add(
         JNIEnv* env,
-        jobject /* this */) {
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
+        jobject /* this */,
+        jint a,
+        jint b) {
+    return add((int)a, (int)b);
 }
